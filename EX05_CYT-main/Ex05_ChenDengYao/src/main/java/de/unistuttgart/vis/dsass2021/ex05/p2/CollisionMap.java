@@ -94,7 +94,7 @@ public class CollisionMap {
     		int n_recYmax = (int) (transformY(recY)+recHeight);
     		for(int i=n_recX;i<=n_recXmax ;i++) {
     			for(int j=n_recY;j<=n_recYmax;j++) {
-    		    map.add((j,i),current_rec);
+    		    map[j][i].add(current_rec);
     		    
     			
     		}
