@@ -87,6 +87,13 @@ public class CollisionMap {
     	while( rectangle_iterator.hasNext() ) {
     		Rectangle current_rec = rectangle_iterator.next();
     		float recX =current_rec.getX() ,recY =current_rec.getY();
+    		
+    		if (recX < this.gridRectangle.getX() || recX > this.gridRectangle.getX() + this.gridRectangle.getWidth()
+        	||recY < this.gridRectangle.getY() || recY > this.gridRectangle.getY() + this.gridRectangle.getHeight()) {
+                throw new CollisionMapOutOfBoundsException("y coordinate is outside the defined range.");
+                }
+                else {
+          
     		float recWidth =current_rec.getWidth() ,recHeight =current_rec.getHeight();
     		int n_recX = (int) transformX(recX);
     		int n_recY = (int) transformY(recY);
@@ -98,6 +105,7 @@ public class CollisionMap {
     		    map[j][i].add(current_rec);		
     			}
     		}
+            }
     	}
     }
     	
@@ -116,8 +124,14 @@ public class CollisionMap {
     private Set<Rectangle> getCollisionCandidates(final Rectangle rectangle) throws CollisionMapOutOfBoundsException {
         // TODO Insert code for assignment 5.2.b
     	Set<Rectangle> can_rec = new HashSet<>(); 
-    	
     	float recX =rectangle.getX() ,recY =rectangle.getY();
+    	
+    	if (recX < this.gridRectangle.getX() || recX > this.gridRectangle.getX() + this.gridRectangle.getWidth()
+    	||recY < this.gridRectangle.getY() || recY > this.gridRectangle.getY() + this.gridRectangle.getHeight()) {
+            throw new CollisionMapOutOfBoundsException("y coordinate is outside the defined range.");
+            }
+            else {
+            
     	float recWidth =rectangle.getWidth() ,recHeight =rectangle.getHeight();
 		int n_recX = (int) transformX(recX);
 		int n_recY = (int) transformY(recY);
@@ -136,6 +150,7 @@ public class CollisionMap {
 			}
 		}
     	return can_rec;
+       }
     }
 
    
@@ -188,8 +203,14 @@ public class CollisionMap {
     	if (rectangle == null) {
             throw new IllegalArgumentException("rectangle is null.");
         }
-    	Set<Rectangle> clid_rec = getCollisionCandidates(rectangle);
-	
+    	
+    	Set<Rectangle> clid_rec = null;
+		try {
+			clid_rec = getCollisionCandidates(rectangle);
+		} catch (CollisionMapOutOfBoundsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return clid_rec.isEmpty()!=true;
     }
 
