@@ -96,54 +96,66 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
      */
     void createQuadTree(final List<T> list) throws IllegalArgumentException {
         // TODO Insert code for assignment 5.1.c
-    	Rectangle current_box = computeBoundingBox( list );
-    	float box_X = current_box.getX(), current_box_Y = current_box.getY();
-    	float box_Width = current_box.getWidth(), box_Height = current_box.getHeight();
-    	// these will store splitted element
-    	List<T> TL_Kind = new LinkedList<T>();
-    	List<T> TR_Kind = new LinkedList<T>();
-    	List<T> BL_Kind = new LinkedList<T>();
-    	List<T> BR_Kind = new LinkedList<T>();
-    	for ( int i = 0 ; i < list.size(); i++) {
-    		float point_X = list.get(i).getPosition().getXValue();
-    		float point_Y = list.get(i).getPosition().getYValue();
-    		if( point_X <= box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
-    			TL_Kind.add(list.get(i));
-    		}
-    		else if( point_X > box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
-    			TR_Kind.add(list.get(i));
-    		}
-    		else if( point_X <= box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
-    			BL_Kind.add(list.get(i));
-    		}
-    		else if( point_X > box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
-    			BR_Kind.add(list.get(i));
-    		}
+    	// First of all, have to check if the list cotains only one element,
+    	// which means: this node is a leaf node
+    	if ( list.size()== 1 ) { this.leafElements.add(list.get(0));}
+    	//in else case, the current list contains always more then one element
+    	else {
+	    	Rectangle current_box = computeBoundingBox( list );
+	    	float box_X = current_box.getX(), current_box_Y = current_box.getY();
+	    	float box_Width = current_box.getWidth(), box_Height = current_box.getHeight();
+	    	// these will store splitted element
+	    	List<T> TL_Kind = new LinkedList<T>();
+	    	List<T> TR_Kind = new LinkedList<T>();
+	    	List<T> BL_Kind = new LinkedList<T>();
+	    	List<T> BR_Kind = new LinkedList<T>();
+	    	for ( int i = 0 ; i < list.size(); i++) {
+	    		float point_X = list.get(i).getPosition().getXValue();
+	    		float point_Y = list.get(i).getPosition().getYValue();
+	    		if( point_X <= box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
+	    			TL_Kind.add(list.get(i));
+	    		}
+	    		else if( point_X > box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
+	    			TR_Kind.add(list.get(i));
+	    		}
+	    		else if( point_X <= box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
+	    			BL_Kind.add(list.get(i));
+	    		}
+	    		else if( point_X > box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
+	    			BR_Kind.add(list.get(i));
+	    		}
+	    	}
+	    	// now we assign the splitted list into TL,TR,BL,BR
+	    	//if for example the TL_Kind list contains only one element,
+	    	// then it will automatically generate the TL child node as a leaf node
+	    	//which all four node is null and leafElement stores the point element
+	    	if ( !TL_Kind.isEmpty()) {  		
+	    		this.topLeft = createSubTree(TL_Kind, computeBoundingBox(TL_Kind));
+	    		createQuadTree( TL_Kind );
+	    	}
+	    	else if ( TL_Kind.isEmpty()) {this.topLeft = null;}
+	    	
+	    	
+	    	if ( !TR_Kind.isEmpty()) {
+	    		this.topRight = createSubTree(TR_Kind, computeBoundingBox(TR_Kind));
+	    		createQuadTree( TR_Kind );
+	    	}
+	    	else if( TR_Kind.isEmpty()) {this.topRight = null;}
+	    	
+	    	
+	    	if ( !BL_Kind.isEmpty()) { 
+	    		this.bottomLeft = createSubTree(BL_Kind, computeBoundingBox(BL_Kind));
+	    		createQuadTree( BL_Kind);
+	    	}
+	    	else if( BL_Kind.isEmpty()) {this.bottomLeft = null;}
+	    	
+	    	
+	    	if ( !BR_Kind.isEmpty()) { 
+	    		this.bottomRight = createSubTree(BR_Kind, computeBoundingBox(BR_Kind));
+	    		createQuadTree( BR_Kind);
+	    	}
+	    	else if(BR_Kind.isEmpty()) {this.bottomRight = null ;}
     	}
-    	
-    	if (TL_Kind.isEmpty()) { 
-    		this.topLeft = createSubTree(TL_Kind, computeBoundingBox(TL_Kind));
-    		createQuadTree( TL_Kind );
-    	}
-    	else if (!TL_Kind.isEmpty()) {this.topLeft = null;}
-    	
-    	if (TR_Kind.isEmpty()) {
-    		this.topRight = createSubTree(TR_Kind, computeBoundingBox(TR_Kind));
-    		createQuadTree( TR_Kind );
-    	}
-    	else if(!TR_Kind.isEmpty()) {this.topRight = null;}
-    	
-    	if (BL_Kind.isEmpty()) { 
-    		this.bottomLeft = createSubTree(BL_Kind, computeBoundingBox(BL_Kind));
-    		createQuadTree( BL_Kind);
-    	}
-    	else if(!BL_Kind.isEmpty()) {this.bottomLeft = null;}
-    	if (BR_Kind.isEmpty()) { 
-    		this.bottomRight = createSubTree(BR_Kind, computeBoundingBox(BR_Kind));
-    		createQuadTree( BR_Kind);
-    	}
-    	else if(!BR_Kind.isEmpty()) {this.bottomRight = null ;}
-    	
     }
 
     /**
@@ -188,5 +200,66 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
     @Override
     public void rangeQuery(final List<T> resultList, final Rectangle query) {
         // TODO Insert code for assignment 5.1.d
+    	//check if intersects the whole tree
+    	//firstly, have to compute the bounding box of the whole tree
+    	//before that, we have to check if the search area has totally no overlap with tree
+    	//if it is, then do nothing and the resultList remain empty
+    	if( this.boundingBox.intersects(query) ) {
+    		//now check if the query area contain the whole tree box
+    		if( query.getX()<= this.getBoundingBox().getX() && 
+    			query.getY() <= this.getBoundingBox().getY() &&
+    			query.getX()+query.getWidth() >= this.getBoundingBox().getX()+this.getBoundingBox().getWidth() &&
+    			query.getY()+query.getHeight() >= this.getBoundingBox().getY()+this.getBoundingBox().getHeight()){
+    			//cause target area contains the whole tree area,
+    			//we only need to store all leaf of tree into it
+    			//for sure, have to check if the elements duplicates
+    			if( this.leafElements != null ) { 
+    				if( !resultList.contains(this.leafElements.get(0)) ) {
+    					resultList.add( this.leafElements.get(0));
+    				}
+    			}
+    			else if( this.topLeft.leafElements == null) { this.topLeft.rangeQuery( resultList, query); }
+    			else if( this.topRight.leafElements == null) { this.topRight.rangeQuery( resultList, query); }
+    			else if( this.bottomLeft.leafElements == null) { this.bottomLeft.rangeQuery( resultList, query); }
+    			else if( this.bottomRight.leafElements == null) { this.bottomRight.rangeQuery( resultList, query); }
+    		}
+    		//so far, we have considered the relationship of containing whole tree
+    		//now we work on the case: overlapping only part of the tree 
+    		else {
+    		// we only care the subnodes, which intersect with query
+    			List<QuadTree<T>> subNodes = new LinkedList<QuadTree<T>>();
+    			if( this.leafElements == null) {
+    				subNodes.add( this.topLeft );
+    				subNodes.add( this.topRight );
+    				subNodes.add( this.bottomLeft );
+    				subNodes.add( this.bottomRight );
+    				for( int i =0; i < 4; i++) {
+    					if (  subNodes.get(i)!= null && query.intersects( subNodes.get(i).getBoundingBox() ) ) {
+    						subNodes.get(i).rangeQuery( resultList, query);
+    					}
+    				}
+    			}
+    			else if( this.leafElements != null) {
+    				if( query.containsPoint( this.leafElements.get(0).getPosition()) && 
+    						!resultList.contains( this.leafElements.get(0)) ){
+    					resultList.add( this.leafElements.get(0) );
+    				}
+    			}
+    		}
+    	}
     }
+    	
+ 
 }
+
+
+
+
+
+
+
+
+
+
+
+

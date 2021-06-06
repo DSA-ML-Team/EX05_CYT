@@ -2,9 +2,11 @@ package de.unistuttgart.vis.dsass2021.ex05.p2;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import de.unistuttgart.vis.dsass2021.ex05.p1.Point;
 import de.unistuttgart.vis.dsass2021.ex05.p1.Rectangle;
 
 /**
@@ -81,7 +83,33 @@ public class CollisionMap {
      */
     private void fillCollisionMap(Set<Rectangle> rectangles) throws CollisionMapOutOfBoundsException {
         // TODO Insert code for assignment 5.2.a
+    	Iterator<Rectangle> rectangle_iterator = rectangles.iterator();
+    	while( rectangle_iterator.hasNext() ) {
+    		Rectangle current_rec = rectangle_iterator.next();
+    		float recX =current_rec.getX() ,recY =current_rec.getY();
+    		
+    		if (recX < this.gridRectangle.getX() || recX > this.gridRectangle.getX() + this.gridRectangle.getWidth()
+        	||recY < this.gridRectangle.getY() || recY > this.gridRectangle.getY() + this.gridRectangle.getHeight()) {
+                throw new CollisionMapOutOfBoundsException("y coordinate is outside the defined range.");
+                }
+                else {
+          
+    		float recWidth =current_rec.getWidth() ,recHeight =current_rec.getHeight();
+    		int n_recX = (int) transformX(recX);
+    		int n_recY = (int) transformY(recY);
+    		int n_recXmax = (int) (transformX(recX)+recWidth);
+    		int n_recYmax = (int) (transformY(recY)+recHeight);
+    		//add rectangle to each cell it covers
+    		for(int i=n_recX;i<=n_recXmax ;++i) {
+    			for(int j=n_recY;j<=n_recYmax;++j) {
+    		    map[j][i].add(current_rec);		
+    			}
+    		}
+            }
+    	}
     }
+    	
+ 
     
     
     /**
@@ -95,6 +123,34 @@ public class CollisionMap {
      */
     private Set<Rectangle> getCollisionCandidates(final Rectangle rectangle) throws CollisionMapOutOfBoundsException {
         // TODO Insert code for assignment 5.2.b
+    	Set<Rectangle> can_rec = new HashSet<>(); 
+    	float recX =rectangle.getX() ,recY =rectangle.getY();
+    	
+    	if (recX < this.gridRectangle.getX() || recX > this.gridRectangle.getX() + this.gridRectangle.getWidth()
+    	||recY < this.gridRectangle.getY() || recY > this.gridRectangle.getY() + this.gridRectangle.getHeight()) {
+            throw new CollisionMapOutOfBoundsException("y coordinate is outside the defined range.");
+            }
+            else {
+            
+    	float recWidth =rectangle.getWidth() ,recHeight =rectangle.getHeight();
+		int n_recX = (int) transformX(recX);
+		int n_recY = (int) transformY(recY);
+		int n_recXmax = (int) (transformX(recX)+recWidth);
+		int n_recYmax = (int) (transformY(recY)+recHeight);
+		
+    	for(int i=n_recX;i<=n_recXmax ;++i) {
+			for(int j=n_recY;j<=n_recYmax;++j) {
+				for(int k=0;k<=map[j][i].size();k++) {
+				//search each cell of the given rectangle, add other rectangles to the set
+				Rectangle a = map[j][i].get(k);
+				if (a != rectangle) {
+					can_rec.add(a);
+				}
+				}
+			}
+		}
+    	return can_rec;
+       }
     }
 
    
@@ -144,6 +200,18 @@ public class CollisionMap {
      */
     public boolean collide(final Rectangle rectangle) {
         // TODO Insert code for assignment 5.2.c
+    	if (rectangle == null) {
+            throw new IllegalArgumentException("rectangle is null.");
+        }
+    	
+    	Set<Rectangle> clid_rec = null;
+		try {
+			clid_rec = getCollisionCandidates(rectangle);
+		} catch (CollisionMapOutOfBoundsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return clid_rec.isEmpty()!=true;
     }
 
     /**

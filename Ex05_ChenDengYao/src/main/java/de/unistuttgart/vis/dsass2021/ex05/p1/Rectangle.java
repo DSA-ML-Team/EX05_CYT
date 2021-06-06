@@ -172,7 +172,7 @@ public class Rectangle {
     	// firstly, we gonna find the point, which has Xmin and Ymin, and get its value.
     	// we compose an Iterator through poitns object
     	Iterator<Point> point_iterator = points.iterator();
-    	float X_min = this.x + this.height , Y_min = this.y + this.width;
+    	float X_min = this.x + this.width , Y_min = this.y + this.height;
     	while( point_iterator.hasNext() ) {
     		Point current_point = point_iterator.next();
     		if( current_point.getXValue() < X_min | current_point.getYValue() < Y_min ) {
