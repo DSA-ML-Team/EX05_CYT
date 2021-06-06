@@ -92,18 +92,16 @@ public class CollisionMap {
     		int n_recY = (int) transformY(recY);
     		int n_recXmax = (int) (transformX(recX)+recWidth);
     		int n_recYmax = (int) (transformY(recY)+recHeight);
-    		for(int i=n_recX;i<=n_recXmax ;i++) {
-    			for(int j=n_recY;j<=n_recYmax;j++) {
-    		    map[j][i].add(current_rec);
-    		    
-    			
+    		//add rectangle to each cell it covers
+    		for(int i=n_recX;i<=n_recXmax ;++i) {
+    			for(int j=n_recY;j<=n_recYmax;++j) {
+    		    map[j][i].add(current_rec);		
+    			}
     		}
-    		
-    		
-    		}
-    	
-    	
+    	}
     }
+    	
+ 
     
     
     /**
@@ -117,7 +115,27 @@ public class CollisionMap {
      */
     private Set<Rectangle> getCollisionCandidates(final Rectangle rectangle) throws CollisionMapOutOfBoundsException {
         // TODO Insert code for assignment 5.2.b
+    	Set<Rectangle> can_rec = new HashSet<>(); 
     	
+    	float recX =rectangle.getX() ,recY =rectangle.getY();
+    	float recWidth =rectangle.getWidth() ,recHeight =rectangle.getHeight();
+		int n_recX = (int) transformX(recX);
+		int n_recY = (int) transformY(recY);
+		int n_recXmax = (int) (transformX(recX)+recWidth);
+		int n_recYmax = (int) (transformY(recY)+recHeight);
+		
+    	for(int i=n_recX;i<=n_recXmax ;++i) {
+			for(int j=n_recY;j<=n_recYmax;++j) {
+				for(int k=0;k<=map[j][i].size();k++) {
+				//search each cell of the given rectangle, add other rectangles to the set
+				Rectangle a = map[j][i].get(k);
+				if (a != rectangle) {
+					can_rec.add(a);
+				}
+				}
+			}
+		}
+    	return can_rec;
     }
 
    
@@ -167,6 +185,12 @@ public class CollisionMap {
      */
     public boolean collide(final Rectangle rectangle) {
         // TODO Insert code for assignment 5.2.c
+    	if (rectangle == null) {
+            throw new IllegalArgumentException("rectangle is null.");
+        }
+    	Set<Rectangle> clid_rec = getCollisionCandidates(rectangle);
+	
+		return clid_rec.isEmpty()!=true;
     }
 
     /**
