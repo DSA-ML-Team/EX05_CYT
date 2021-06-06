@@ -228,7 +228,8 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
     		else {
     		// we only care the subnodes, which intersect with query
     			List<QuadTree<T>> subNodes = new LinkedList<QuadTree<T>>();
-    			if( this.leafElements == null) {
+    			// check if current recursive sub tree is not a leaf node and it has children
+    			if( this.leafElements == null && this.topLeft != null) {
     				subNodes.add( this.topLeft );
     				subNodes.add( this.topRight );
     				subNodes.add( this.bottomLeft );
