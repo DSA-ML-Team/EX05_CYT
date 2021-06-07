@@ -3,12 +3,16 @@ package de.unistuttgart.vis.dsass2021.ex05.p1;
 import java.util.LinkedList;
 import java.util.List;
 
+
+
 /**
  * The class SimpleQuad
  */
 
 public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
-
+	  
+	
+	
     /**
      * a constructor of a SimpleQuadTree with 2 parameters. A bounding box will be
      * computed by the algorithm.
@@ -62,17 +66,19 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
     private Rectangle computeBoundingBox(final List<T> elements) {
         // TODO Insert code for assignment 5.1.b
     	// we have to find the the most right down point of all elements.
-    	float X_max = 0 , Y_max = 0;
+    	float X_max = elements.get(0).getPosition().getXValue() ;
+    	float Y_max = elements.get(0).getPosition().getYValue();
     	float X_min = elements.get(0).getPosition().getXValue();
     	float Y_min = elements.get(0).getPosition().getYValue();
+    	
     	for( int i =0 ; i < elements.size(); i++ ) {
     		Point current_point = elements.get(i).getPosition();
     		float current_X = current_point.getXValue();
     		float current_Y = current_point.getYValue();
     		if (current_X > X_max) {X_max = current_X;}
     		if (current_Y > Y_max) {Y_max = current_Y;}
-    		if (current_X > X_max) {X_max = current_X;}
-    		if (current_Y > Y_max) {Y_max = current_Y;}
+    		if (current_X < X_min) {X_min = current_X;}
+    		if (current_Y < Y_min) {Y_min = current_Y;}
     	}
     	//construct a new Rectangle, which is the bounding box
     	Rectangle BoundingBox  = new Rectangle(X_min, Y_min, X_max-X_min, Y_max-Y_min);
@@ -95,14 +101,23 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
      * @throws IllegalArgumentException, when parameter is missing.
      */
     void createQuadTree(final List<T> list) throws IllegalArgumentException {
+    	
         // TODO Insert code for assignment 5.1.c
-    	// First of all, have to check if the list cotains only one element,
+    	// First of all, have to check if the list contains only one element,
     	// which means: this node is a leaf node
-    	if ( list.size()== 1 ) { this.leafElements.add(list.get(0));}
+    	if ( list.size()== 1 ) {
+    		this.topLeft = null;
+    		this.topRight = null;
+    		this.bottomLeft =null;
+    		this.bottomRight = null;
+    		this.leafElements = new LinkedList<T>();
+    		this.leafElements.addAll(list);
+    		}
     	//in else case, the current list contains always more then one element
     	else {
-	    	Rectangle current_box = computeBoundingBox( list );
-	    	float box_X = current_box.getX(), current_box_Y = current_box.getY();
+    	
+	    	Rectangle current_box = this.boundingBox;
+	    	float box_X = current_box.getX(), box_Y = current_box.getY();
 	    	float box_Width = current_box.getWidth(), box_Height = current_box.getHeight();
 	    	// these will store splitted element
 	    	List<T> TL_Kind = new LinkedList<T>();
@@ -112,16 +127,16 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
 	    	for ( int i = 0 ; i < list.size(); i++) {
 	    		float point_X = list.get(i).getPosition().getXValue();
 	    		float point_Y = list.get(i).getPosition().getYValue();
-	    		if( point_X <= box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
+	    		if( point_X <= box_X + box_Width/2  &&  point_Y <= box_Y + box_Height/2) {
 	    			TL_Kind.add(list.get(i));
 	    		}
-	    		else if( point_X > box_X + box_Width/2  &&  point_Y <= current_box_Y + box_Height/2) {
+	    		if( point_X > box_X + box_Width/2  &&  point_Y <= box_Y + box_Height/2) {
 	    			TR_Kind.add(list.get(i));
 	    		}
-	    		else if( point_X <= box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
+	    		if( point_X <= box_X + box_Width/2 &&  point_Y > box_Y + box_Height/2) {
 	    			BL_Kind.add(list.get(i));
 	    		}
-	    		else if( point_X > box_X + box_Width/2  &&  point_Y > current_box_Y + box_Height/2) {
+	    		if( point_X > box_X + box_Width/2  &&  point_Y > box_Y + box_Height/2) {
 	    			BR_Kind.add(list.get(i));
 	    		}
 	    	}
@@ -129,35 +144,56 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
 	    	//if for example the TL_Kind list contains only one element,
 	    	// then it will automatically generate the TL child node as a leaf node
 	    	//which all four node is null and leafElement stores the point element
-	    	if ( !TL_Kind.isEmpty()) {  		
-	    		this.topLeft = createSubTree(TL_Kind, computeBoundingBox(TL_Kind));
-	    		createQuadTree( TL_Kind );
+	    	if ( !TL_Kind.isEmpty()) {  
+	    		// in new recursive call, a sub node with only one child as leaf node will be generated 
+	    			if( TL_Kind.size() == 1) { 
+	    				this.topLeft = new SimpleQuadTree( TL_Kind, this.maxLeafElements,new Rectangle(box_X, box_Y, box_Width/2, box_Height/2) );
+	    			}
+	    		
+	    		else if( TL_Kind.size() >1) {
+	    			this.topLeft = createSubTree(TL_Kind, new Rectangle(box_X, box_Y, box_Width/2, box_Height/2) );
+	    		}
 	    	}
 	    	else if ( TL_Kind.isEmpty()) {this.topLeft = null;}
-	    	
-	    	
+
 	    	if ( !TR_Kind.isEmpty()) {
-	    		this.topRight = createSubTree(TR_Kind, computeBoundingBox(TR_Kind));
-	    		createQuadTree( TR_Kind );
+	    		// in new recursive call, a sub node with only one child as leaf node will be generated 
+	    		if( TR_Kind.size()==1) { 
+	    			//this.topRight.leafElements.add(TL_Kind.get(0));
+	    			this.topRight = new SimpleQuadTree( TR_Kind,this.maxLeafElements,new Rectangle(box_X+box_Width/2, box_Y, box_Width/2, box_Height/2) );
+	    			}
+	    		else if( TR_Kind.size()> 1) {
+	    			this.topRight = createSubTree(TR_Kind, new Rectangle(box_X+box_Width/2, box_Y, box_Width/2, box_Height/2) );
+	    		}
 	    	}
 	    	else if( TR_Kind.isEmpty()) {this.topRight = null;}
-	    	
-	    	
+
 	    	if ( !BL_Kind.isEmpty()) { 
-	    		this.bottomLeft = createSubTree(BL_Kind, computeBoundingBox(BL_Kind));
-	    		createQuadTree( BL_Kind);
+	    		if( BL_Kind.size() == 1) {
+	    			this.bottomLeft = new SimpleQuadTree (BL_Kind,this.maxLeafElements, new Rectangle(box_X, box_Y + box_Height/2, box_Width/2, box_Height/2));    
+	    			}
+	    		else if( BL_Kind.size() >1 ) {
+	    			this.bottomLeft = createSubTree(BL_Kind, new Rectangle(box_X, box_Y + box_Height/2, box_Width/2, box_Height/2));
+	    		}
 	    	}
 	    	else if( BL_Kind.isEmpty()) {this.bottomLeft = null;}
 	    	
-	    	
 	    	if ( !BR_Kind.isEmpty()) { 
-	    		this.bottomRight = createSubTree(BR_Kind, computeBoundingBox(BR_Kind));
-	    		createQuadTree( BR_Kind);
+	    		if( BR_Kind.size() == 1) {
+	    			//this.bottomRight.leafElements.add(TL_Kind.get(0));
+	    			this.bottomRight = new SimpleQuadTree (BR_Kind,this.maxLeafElements, new Rectangle(box_X+ box_Width/2 , box_Y + box_Height/2, box_Width/2, box_Height/2));
+	    		}
+	    		else if( BR_Kind.size() >1 ) {
+	    			this.bottomRight = createSubTree(BR_Kind, new Rectangle(box_X+ box_Width/2 , box_Y + box_Height/2, box_Width/2, box_Height/2));
+	    		}
 	    	}
 	    	else if(BR_Kind.isEmpty()) {this.bottomRight = null ;}
     	}
     }
 
+    
+    
+    
     /**
      * Creates a sub QuadTree with the elements contained in the bounding box.
      * The QuadTree is empty if no elements are contained in the bounding box.
@@ -218,11 +254,12 @@ public class SimpleQuadTree<T extends QuadTreeElement> extends QuadTree<T> {
     					resultList.add( this.leafElements.get(0));
     				}
     			}
-    			else if( this.topLeft.leafElements == null) { this.topLeft.rangeQuery( resultList, query); }
-    			else if( this.topRight.leafElements == null) { this.topRight.rangeQuery( resultList, query); }
-    			else if( this.bottomLeft.leafElements == null) { this.bottomLeft.rangeQuery( resultList, query); }
-    			else if( this.bottomRight.leafElements == null) { this.bottomRight.rangeQuery( resultList, query); }
+    			else if( this.topLeft != null && this.topLeft.leafElements == null) { this.topLeft.rangeQuery( resultList, query); }
+    			else if( this.topRight != null && this.topRight.leafElements == null) { this.topRight.rangeQuery( resultList, query); }
+    			else if( this.bottomLeft != null && this.bottomLeft.leafElements == null) { this.bottomLeft.rangeQuery( resultList, query); }
+    			else if( this.bottomRight != null && this.bottomRight.leafElements == null) { this.bottomRight.rangeQuery( resultList, query); }
     		}
+    		
     		//so far, we have considered the relationship of containing whole tree
     		//now we work on the case: overlapping only part of the tree 
     		else {

@@ -1,5 +1,6 @@
 package de.unistuttgart.vis.dsass2021.ex05.p1;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class QuadTree<T extends QuadTreeElement> {
@@ -40,7 +41,7 @@ public abstract class QuadTree<T extends QuadTreeElement> {
    * The maximum number of elements in a leaf node
    */
   int maxLeafElements = 4;
-
+  
   /**
    * Performs a two-dimensional range query and adds all elements in the
    * selected area to the result list.
